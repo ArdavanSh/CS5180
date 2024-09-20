@@ -71,7 +71,7 @@ for i in range(len(terms)):
     for j in range(len(newDocs)):
         if terms[i] in termCounter[j]:
             df += 1
-    idf = np.log(abs(D)/df)
+    idf = np.log10(abs(D)/df)
     docTermMatrix[:,i] = docTermMatrix[:,i]*idf
 
 
