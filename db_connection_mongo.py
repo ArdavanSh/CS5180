@@ -23,6 +23,68 @@ def connectDataBase():
     except:
         print("Database not connected successfully")
 
+
+
+def createDocument(documents, docId, docText, docTitle, docDate, docCat):
+
+    txt = re.sub(f"[{re.escape(string.punctuation)}]", "", docText.lower()).split()
+    wordsCounter = Counter(txt)
+
+    # Convert Counter to a list of dictionaries
+    terms_list = [{"term": word, "count": count} for word, count in wordsCounter.items()]
+
+    # Value to be inserted
+    doc = {
+        "_id": docId,
+        "text": docText,
+        "title": docTitle,
+        "date": datetime.datetime.strptime(docDate, "%Y-%m-%d"),
+        "category": docCat,
+        "terms": terms_list  
+    }
+
+    documents.insert_one(doc)
+
+
+def updateDocument(documents, docId, docText, docTitle, docDate, docCat):
+
+    txt = re.sub(f"[{re.escape(string.punctuation)}]", "", docText.lower()).split()
+    wordsCounter = Counter(txt)
+    terms_list = [{"term": word, "count": count} for word, count in wordsCounter.items()]
+
+    # documents fields to be updated
+    doc = {"$set": {"text": docText, "title": docTitle, "date":datetime.datetime.strptime(docDate, "%Y-%m-%d"), "category":docCat, "terms":terms_list}}
+
+    # Updating the dpcument
+    documents.update_one({"_id": docId}, doc)
+
+
+def deleteDocument(documents, docId):
+
+    # delete the  document
+    documents.delete_one({"_id": docId})
+
+
+def getIndex(documents):
+
+    invertedIndex = defaultdict(list)
+
+    docs = list(documents.find())
+
+    for doc in docs:
+        for term in doc["terms"]:  
+            key = term["term"]  
+            val = term["count"]  
+            invertedIndex[key].append((doc["title"], val))  
+
+    sorted_data = [(key, sorted(value)) for key, value in sorted(invertedIndex.items())]
+    
+    return sorted_data
+
+# _______________________________________________________________________________________
+
+
+
 def createUser(col, id, name, email):
 
     # Value to be inserted
@@ -100,63 +162,7 @@ def getChat(col):
 
     return chat
 
-# _______________________________________________________________________________________
 
 
-def createDocument(documents, docId, docText, docTitle, docDate, docCat):
-
-    txt = re.sub(f"[{re.escape(string.punctuation)}]", "", docText.lower()).split()
-    wordsCounter = Counter(txt)
-
-    # Convert Counter to a list of dictionaries
-    terms_list = [{"term": word, "count": count} for word, count in wordsCounter.items()]
-
-    # Value to be inserted
-    doc = {
-        "_id": docId,
-        "text": docText,
-        "title": docTitle,
-        "date": datetime.datetime.strptime(docDate, "%Y-%m-%d"),
-        "category": docCat,
-        "terms": terms_list  
-    }
-
-    documents.insert_one(doc)
-
-
-def updateDocument(documents, docId, docText, docTitle, docDate, docCat):
-
-    txt = re.sub(f"[{re.escape(string.punctuation)}]", "", docText.lower()).split()
-    wordsCounter = Counter(txt)
-    terms_list = [{"term": word, "count": count} for word, count in wordsCounter.items()]
-
-    # documents fields to be updated
-    doc = {"$set": {"text": docText, "title": docTitle, "date":datetime.datetime.strptime(docDate, "%Y-%m-%d"), "category":docCat, "terms":terms_list}}
-
-    # Updating the dpcument
-    documents.update_one({"_id": docId}, doc)
-
-
-def deleteDocument(documents, docId):
-
-    # delete the  document
-    documents.delete_one({"_id": docId})
-
-
-def getIndex(documents):
-
-    invertedIndex = defaultdict(list)
-
-    docs = list(documents.find())
-
-    for doc in docs:
-        for term in doc["terms"]:  
-            key = term["term"]  
-            val = term["count"]  
-            invertedIndex[key].append((doc["title"], val))  
-
-    sorted_data = [(key, sorted(value)) for key, value in sorted(invertedIndex.items())]
-    
-    return sorted_data
 
 
